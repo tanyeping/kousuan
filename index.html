@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生口算练习系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            flex: 0 0 300px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .quiz-area {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 600px;
+            position: relative;
+            animation: slideIn 0.5s ease-out 0.2s both;
+        }
+
+        .timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+            z-index: 1000;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% {transform: scale(1);}
+            50% {transform: scale(1.05);}
+            100% {transform: scale(1);}
+        }
+
+        .questions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .question-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 15px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .question-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .question-item.active {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1em;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f8ff;
+        }
+
+        .answer-input.correct {
+            border-color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .answer-input.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .score-display {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #667eea;
+        }
+
+        .score-display.high-score {
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 400% 400%;
+            animation: rainbow 2s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes rainbow {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            position: absolute;
+            animation: confetti-fall 3s linear;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .history-item.high-score {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            font-weight: bold;
+            animation: glow 1s infinite alternate;
+        }
+
+        @keyframes glow {
+            from {box-shadow: 0 0 5px #ff6b6b;}
+            to {box-shadow: 0 0 20px #ff6b6b;}
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .control-panel, .timer, button, .modal {
+                display: none;
+            }
+            .quiz-area {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌟 小学生口算练习系统 🌟</h1>
+        </header>
+
+        <div class="main-content">
+            <aside class="control-panel">
+                <h2 style="text-align: center; margin-bottom: 20px; color: #667eea;">📚 题目设置</h2>
+                
+                <div class="control-group">
+                    <label for="questionCount">题目数量 (1-100):</label>
+                    <input type="number" id="questionCount" min="1" max="100" value="30">
+                </div>
+
+                <div class="control-group">
+                    <label for="dataCount">数据个数 (1-10):</label>
+                    <input type="number" id="dataCount" min="1" max="10" value="2">
+                </div>
+
+                <div class="control-group">
+                    <label for="minValue">最小值:</label>
+                    <input type="number" id="minValue" value="1">
+                </div>
+
+                <div class="control-group">
+                    <label for="maxValue">最大值:</label>
+                    <input type="number" id="maxValue" value="20">
+                </div>
+
+                <div class="control-group">
+                    <label for="operation">运算方式:</label>
+                    <select id="operation">
+                        <option value="random">随机 (+ - × ÷)</option>
+                        <option value="+">加法 (+)</option>
+                        <option value="-">减法 (-)</option>
+                        <option value="*">乘法 (×)</option>
+                        <option value="/">除法 (÷)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="timeLimit">答题时间 (秒):</label>
+                    <input type="number" id="timeLimit" min="10" max="3600" value="300">
+                </div>
+
+                <button id="generateBtn" class="btn-primary">🎯 生成题目</button>
+                <button id="startBtn" class="btn-success">▶️ 启动答题</button>
+                <button id="submitBtn" class="btn-warning">📝 交卷</button>
+                <button id="historyBtn" class="btn-primary">📜 查看历史</button>
+            </aside>
+
+            <main class="quiz-area">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 20px;">📝 答题区域</h2>
+                <div id="questionsContainer" class="questions-grid"></div>
+            </main>
+        </div>
+    </div>
+
+    <div id="timer" class="timer" style="display: none;">05:00</div>
+
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('resultModal')">&times;</span>
+            <h2 id="resultTitle">🎉 答题完成！</h2>
+            <div class="score-display" id="scoreDisplay">85%</div>
+            <div id="resultDetails"></div>
+            <button onclick="closeModal('resultModal')" style="margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('historyModal')">&times;</span>
+            <h2>📜 答题历史</h2>
+            <div id="historyList" class="history-list"></div>
+            <button onclick="closeModal('historyModal')" style="margin-top: 20px;">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let timerInterval = null;
+        let startTime = null;
+        let quizActive = false;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载历史记录
+            loadHistory();
+            
+            // 绑定事件
+            document.getElementById('generateBtn').addEventListener('click', generateQuestions);
+            document.getElementById('startBtn').addEventListener('click', startQuiz);
+            document.getElementById('submitBtn').addEventListener('click', submitQuiz);
+            document.getElementById('historyBtn').addEventListener('click', showHistory);
+            
+            // 键盘导航
+            document.addEventListener('keydown', handleKeyPress);
+        });
+
+        // 生成题目
+        function generateQuestions() {
+            const count = parseInt(document.getElementById('questionCount').value);
+            const dataCount = parseInt(document.getElementById('dataCount').value);
+            const minValue = parseInt(document.getElementById('minValue').value);
+            const maxValue = parseInt(document.getElementById('maxValue').value);
+            const operation = document.getElementById('operation').value;
+            
+            questions = [];
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const question = generateSingleQuestion(dataCount, minValue, maxValue, operation);
+                questions.push(question);
+                
+                const questionDiv = createQuestionElement(question, i);
+                container.appendChild(questionDiv);
+            }
+            
+            showMessage('题目生成成功！点击"启动答题"开始练习。');
+        }
+
+        // 生成单个题目
+        function generateSingleQuestion(dataCount, minValue, maxValue, operation) {
+            const numbers = [];
+            const ops = [];
+            
+            // 生成数字
+            for (let i = 0; i < dataCount; i++) {
+                numbers.push(getRandomInt(minValue, maxValue));
+            }
+            
+            // 生成运算符
+            if (operation === 'random') {
+                const operations = ['+', '-', '*', '/'];
+                for (let i = 0; i < dataCount - 1; i++) {
+                    ops.push(operations[Math.floor(Math.random() * operations.length)]);
+                }
+            } else {
+                for (let i = 0; i < dataCount - 1; i++) {
+                    ops.push(operation);
+                }
+            }
+            
+            // 确保除法能整除
+            for (let i = 0; i < ops.length; i++) {
+                if (ops[i] === '/') {
+                    numbers[i + 1] = getDivisor(numbers[i]);
+                }
+            }
+            
+            // 计算结果
+            const expression = buildExpression(numbers, ops);
+            const result = evaluateExpression(numbers, ops);
+            
+            return {
+                expression: expression,
+                result: result,
+                userAnswer: null,
+                correct: false
+            };
+        }
+
+        // 获取随机整数
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // 获取除数（保证整除）
+        function getDivisor(number) {
+            const divisors = [];
+            for (let i = 1; i <= number && i <= 20; i++) {
+                if (number % i === 0) {
+                    divisors.push(i);
+                }
+            }
+            return divisors[Math.floor(Math.random() * divisors.length)];
+        }
+
+        // 构建表达式字符串
+        function buildExpression(numbers, ops) {
+            let expr = numbers[0];
+            for (let i = 0; i < ops.length; i++) {
+                expr += ' ' + ops[i] + ' ' + numbers[i + 1];
+            }
+            return expr;
+        }
+
+        // 计算表达式结果
+        function evaluateExpression(numbers, ops) {
+            let result = numbers[0];
+            for (let i = 0; i < ops.length; i++) {
+                switch(ops[i]) {
+                    case '+': result += numbers[i + 1]; break;
+                    case '-': result -= numbers[i + 1]; break;
+                    case '*': result *= numbers[i + 1]; break;
+                    case '/': result /= numbers[i + 1]; break;
+                }
+            }
+            return result;
+        }
+
+        // 创建题目元素
+        function createQuestionElement(question, index) {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.innerHTML = `
+                <div class="question-text">${question.expression} = ?</div>
+                <input type="number" class="answer-input" id="answer-${index}" 
+                       placeholder="输入答案" disabled>
+            `;
+            return div;
+        }
+
+        // 开始答题
+        function startQuiz() {
+            if (questions.length === 0) {
+                showMessage('请先生成题目！');
+                return;
+            }
+            
+            quizActive = true;
+            startTime = Date.now();
+            currentQuestionIndex = 0;
+            
+            // 启用输入框
+            document.querySelectorAll('.answer-input').forEach(input => {
+                input.disabled = false;
+                input.value = '';
+            });
+            
+            // 设置焦点
+            focusQuestion(0);
+            
+            // 启动计时器
+            const timeLimit = parseInt(document.getElementById('timeLimit').value);
+            startTimer(timeLimit);
+            
+            showMessage('答题开始！加油！');
+        }
+
+        // 启动计时器
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            const timerElement = document.getElementById('timer');
+            timerElement.style.display = 'block';
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 10) {
+                    timerElement.style.background = '#ff3838';
+                    timerElement.style.animation = 'pulse 0.5s infinite';
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        // 键盘导航
+        function handleKeyPress(e) {
+            if (!quizActive) return;
+            
+            const container = document.getElementById('questionsContainer');
+            const items = container.querySelectorAll('.question-item');
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (currentQuestionIndex > 0) {
+                        focusQuestion(currentQuestionIndex - 1);
+                    }
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (currentQuestionIndex < items.length - 1) {
+                        focusQuestion(currentQuestionIndex + 1);
+                    }
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (currentQuestionIndex > 0) {
+                        focusQuestion(currentQuestionIndex - 1);
+                    }
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (currentQuestionIndex < items.length - 1) {
+                        focusQuestion(currentQuestionIndex + 1);
+                    }
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (currentQuestionIndex < items.length - 1) {
+                        focusQuestion(currentQuestionIndex + 1);
+                    }
+                    break;
+            }
+        }
+
+        // 聚焦题目
+        function focusQuestion(index) {
+            document.querySelectorAll('.question-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const items = document.querySelectorAll('.question-item');
+            if (items[index]) {
+                items[index].classList.add('active');
+                const input = items[index].querySelector('.answer-input');
+                if (input) {
+                    input.focus();
+                }
+                currentQuestionIndex = index;
+                
+                // 滚动到可见区域
+                items[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // 提交答题
+        function submitQuiz() {
+            if (!quizActive) return;
+            
+            quizActive = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer').style.display = 'none';
+            
+            // 收集答案
+            let correctCount = 0;
+            questions.forEach((question, index) => {
+                const input = document.getElementById(`answer-${index}`);
+                const userAnswer = parseFloat(input.value) || 0;
+                question.userAnswer = userAnswer;
+                question.correct = Math.abs(userAnswer - question.result) < 0.01;
+                
+                if (question.correct) {
+                    correctCount++;
+                    input.classList.add('correct');
+                } else {
+                    input.classList.add('incorrect');
+                }
+                
+                input.disabled = true;
+            });
+            
+            // 计算得分
+            const score = Math.round((correctCount / questions.length) * 100);
+            const duration = Math.round((Date.now() - startTime) / 1000);
+            
+            // 显示结果
+            showResult(score, correctCount, questions.length, duration);
+            
+            // 保存到历史
+            saveToHistory(score, correctCount, questions.length, duration);
+            
+            // 高分动画
+            if (score >= 90) {
+                showConfetti();
+            }
+        }
+
+        // 显示结果
+        function showResult(score, correct, total, duration) {
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('resultTitle');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const details = document.getElementById('resultDetails');
+            
+            if (score >= 90) {
+                title.textContent = '🎉 太棒了！';
+                scoreDisplay.className = 'score-display high-score';
+            } else if (score >= 70) {
+                title.textContent = '👍 做得不错！';
+                scoreDisplay.className = 'score-display';
+            } else {
+                title.textContent = '💪 继续加油！';
+                scoreDisplay.className = 'score-display';
+            }
+            
+            scoreDisplay.textContent = score + '%';
+            details.innerHTML = `
+                <p>答对题数：${correct} / ${total}</p>
+                <p>用时：${Math.floor(duration / 60)}分${duration % 60}秒</p>
+                <p>平均每题：${Math.round(duration / total)}秒</p>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        // 撒花动画
+        function showConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#feca57', '#48dbfb'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // 保存到历史
+        function saveToHistory(score, correct, total, duration) {
+            const history = JSON.parse(localStorage.getItem('mathQuizHistory') || '[]');
+            const record = {
+                date: new Date().toLocaleString(),
+                score: score,
+                correct: correct,
+                total: total,
+                duration: duration,
+                timestamp: Date.now()
+            };
+            
+            history.unshift(record);
+            if (history.length > 50) {
+                history.pop();
+            }
+            
+            localStorage.setItem('mathQuizHistory', JSON.stringify(history));
+        }
+
+        // 加载历史
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('mathQuizHistory') || '[]');
+            // 可以在这里初始化历史显示
+        }
+
+        // 显示历史
+        function showHistory() {
+            const history = JSON.parse(localStorage.getItem('mathQuizHistory') || '[]');
+            const list = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #999;">暂无答题记录</p>';
+            } else {
+                list.innerHTML = history.map((record, index) => `
+                    <div class="history-item ${record.score >= 90 ? 'high-score' : ''}">
+                        <strong>第${index + 1}次</strong> - ${record.date}<br>
+                        得分：<strong>${record.score}%</strong> | 
+                        正确：${record.correct}/${record.total} | 
+                        用时：${Math.floor(record.duration / 60)}分${record.duration % 60}秒
+                        ${record.score >= 90 ? ' 🏆' : ''}
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('historyModal').style.display = 'block';
+        }
+
+        // 关闭模态框
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // 显示消息
+        function showMessage(message) {
+            // 创建临时消息元素
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px 40px;
+                border-radius: 50px;
+                font-size: 1.2em;
+                z-index: 3000;
+                animation: fadeInOut 2s;
+            `;
+            msg.textContent = message;
+            document.body.appendChild(msg);
+            
+            setTimeout(() => msg.remove(), 2000);
+        }
+
+        // 添加淡入淡出动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInOut {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
